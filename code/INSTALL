@@ -1,0 +1,10 @@
+For now, there isn't a fancy build system in place.
+
+"make" or "make all" will build pcl.cma, which will have
+the modules in this directory at the top level.
+
+"make opt" builds pcl.cmxa
+
+"make check" builds pcl.cma, some of the example parsers in
+the "parsers" subdirectory, the test suite in the "test" subdirectory,
+and runs the test suite.  You may want to send its output to a file.

@@ -1,0 +1,282 @@
+(this is a work in progress, eventually it will be in html/pdf/etc.)
+
+pcl is, in large part, a port of the Haskell library Parsec.
+Documentation for Parsec is available here:
+
+http://legacy.cs.uu.nl/daan/parsec.html.  
+
+Rather than repeating everything already said in the extensive Parsec
+documentation, this file explains differences between the two
+libraries and describes features unique to pcl.  There are many useful
+combinators in the Parsec library - all have been included in pcl.
+
+This documentation is meant for someone already familiar with monadic
+parser combinators.  For an introduction to the idea in general, see
+Graham Hutton and Erik Meijer's excellent tutorial, "Monadic Parser
+Combinators":
+
+http://citeseer.ist.psu.edu/hutton96monadic.html
+
+1) Getting Started
+2) Types
+3) Modules
+4) Name Changes
+5) New Features
+
+------------------
+
+--Getting Started--
+
+For the common case of parsing character streams, everything one needs
+can be found in the CharParse module.  CharParse contains
+instantiations of all the basic modules for the common case of
+characters:
+
+CharParse.CharPrim : Prim.S
+CharParse.CharComb : Combinator.S
+CharParse.CharExpr : Expr.S
+
+CharPrim has all the definitions one needs to get going, like return
+and bind (and many others):
+
+  val return : 'a -> ('st, 'a) parser
+      
+  val (>>=)  : ('st, 'a) parser -> ('a -> ('st, 'b) parser) -> 
+               ('st, 'b) parser
+
+parse and parseSt, also in Prim, can be used to run a parser with
+or without the state monad:
+
+  val parse : string -> Tok.t LazyList.M.l_list -> (unit, 'a) parser -> 
+              'a parse_output
+
+  val parseSt : string -> Tok.t LazyList.M.l_list -> 'st -> 
+                ('st, 'a) parser -> 'a parse_output
+
+(parse n i p) runs parser p on input i.  n is the "name" of the
+parser, used for descriptive output.  Information about LazyList is in
+the "Types" section, and information about the Tok modules and how to
+parse other token types is in the "Modules" section, below.  For
+getting started quickly, the most important function is probably:
+
+  val ofString  : string -> char l_list
+
+This function, in the LazyList module, creates a character token stream,
+suitable for input to the "parse" function, from a string.
+
+The subdirectory "examples" contains several examples and documentation
+for them, which may be helpful.
+
+--Types--
+
+In pcl, the basic type of parsers is:
+
+  ('st,'a) parser
+
+Where 'a is the return type of the parser, and 'st is the type of the user
+state which may optionally be threaded to a parser.  This is similar to
+the Parsec parser type:
+
+  GenParser tok st a
+
+where st is the user state type and a is the return type of the
+parser.  Here, tok is the type of input tokens.  In pcl, the type of
+input tokens is instead specified inside the Prim module - more on
+this in the modules section.
+
+When executing a parser, the input stream must be given as a lazy
+list, defined in the LazyList.M module.  The LazyList.M functions:
+
+  val from      : (int -> 'a option) -> 'a l_list
+  val ofList    : 'a list -> 'a l_list
+  val ofString  : string -> char l_list
+  val ofStream  : 'a Stream.t -> 'a l_list
+  val ofChannel : in_channel -> char l_list
+
+may be used to build LazyLists.  ofString and ofChannel may be used to
+build a LazyList of characters from strings or input channels, two
+common cases.  The others functions may be used for any type of token.
+
+The ('st,'a) parser type is actually an exposed function type:
+  
+  type ('st, 'a) parser = 'st state -> ('st,'a) rcon
+  
+but the types "'st state" and "('st,'a) rcon" are hidden.  Ideally,
+the parser type wouldn't be exposed in this way, this is necessary
+because of OCaml limitations involving partial function application
+and singleton type variables.  Sometimes it is necessary to explicitly
+indicate that parsers are functions - more on this in the examples
+section.
+
+--Modules--
+
+The ported versions of some Parsec modules have taken different names
+in pcl.  The module translations are:
+
+Parsec.Pos        -> Pos
+Parsec.Error      -> Error
+Parsec.Prim       -> Prim
+Parsec.Combinator -> Combinator
+Parsec.Char       -> CharParse
+Parsec.Expr       -> Expr
+Parsec.Language   -> Language
+Parsec.Token      -> Language
+
+The pcl module Token is not related to the Parsec module Token.  The
+pcl module specifies basic position and toString information about the
+token type for use by Prim.  In general, each pcl module Foo has a
+corresponding ocaml file Foo.ml which has two components, a signature
+Foo.S and an implementation Foo.M.  Often, Foo.M is a functor.
+
+To use a different token type, a small amount of set up is required:
+
+In pcl, the parsers parse LazyLists of input tokens.  The type of 
+input tokens must be specifed by an implenentation of the Token.S
+signature:
+
+module type S =
+sig 
+
+  type t
+
+  val toString : t -> string
+  val eq       : t -> t -> bool
+  val nextPos  : Pos.M.pos -> t -> Pos.M.pos
+
+end
+
+This module has already been implemented for the common token type char.
+
+The fundamental parsing definitions occur in the Prim module, which
+contains a Token module indicating the input type (this differs from
+Parsec, where the input token type is a parameter of the parser type).
+
+In particular, Prim.M is a functor which takes an implementation of
+Token.S.  Many of the other parsing modules are functors which take
+an implementation of Prim.S.  So, to set up parsers for a token type
+other than char, the standard procedure is to implement Token.S
+for that type, instantiate Prim.M with your implementation of Token,
+and then instantiate the combinator modules you would like to use with
+your new Prim module.  Documentation and an example in the Token.ml
+file can guide you through an implentation of that module, which is
+quick to do.
+
+
+--Name changes--
+
+A few Parsec parsers have had their names changed:
+
+Parsec.Prim.try -> Prim.attempt
+Parsec.Combinator.lookAhead -> Prim.peek
+
+
+--New Features--
+
+Several new combinators and features have been added to pcl.
+
+ -New combinators-
+
+The original Parsec has many combinators for lists, but none for
+arrays.  Since arrays are much more common in OCaml than in Haskell,
+it makes sense to add some.  Prim.many and Prim.tokens now have array
+counterparts:
+
+  Prim.manyArrOp : ('st, 'a) parser -> one:bool -> ('st, 'a array) parser
+  Prim.tokenArr : Tok.t array -> ('st, Tok.t array) parser
+
+The extra argument (one:bool) to manyArrOp may be used to indicate
+whether the repeated parser must succeed at least once (true means it
+must).
+
+Note that the implementation of array parsers raises some efficiency
+questions, and it is not clear that the current implementation is
+best.
+
+Several list parsers in Combinator have also gained array counterparts:
+
+  val sepByArr : ('st,'a) P.parser -> ('st,'sep) P.parser ->
+                 ('st,'a array) P.parser
+
+  val sepEndByArr : ('st,'a) P.parser -> ('st,'sep) P.parser ->
+                    ('st, 'a array) P.parser                               
+
+
+Some other unrelated parsers have been added for convenience:
+
+
+Combinator.app : ('a -> 'b) -> ('st,'a) parser -> ('st,'b) parser
+
+app f p applies f to the result of the parser p
+
+
+Combinator.optionRet : ('st,'a) P.parser -> ('st,'a option) P.parser
+
+optionRet p evaluates to (Some r) if p succeeds with result r, and
+evaluatesNone otherwise.  This is shorthand for:
+  option None (p >>= fun r -> Some r)
+
+
+Combinator.foldl  : ('st,'a -> 'a) P.parser -> 'a -> ('st,'a) P.parser
+
+foldl op i repeatedly parses op, each time accumulating the result onto
+  what has been built up so far using the parsed function.  It is
+  equivalent to:
+    many op >>= fun l -> List.fold_left (fun r f -> f r) i l
+  but is more efficient
+
+
+
+ -Changes to Expr-
+
+Expr is a module that may be used for parsing expression grammars.
+Users familiar with Parsec's Expr module will observe that an extra
+constructor has appeared in the Expr.operator type.  If you could
+already do what you wanted with Parsec's Expr system, you can safely
+ignore the new constructor.
+
+If you are not familiar with Parsec's Expr module, documentation on
+it with an example may be found here:
+
+http://legacy.cs.uu.nl/daan/download/parsec/parsec.html#ParsecExpr
+
+The original Parsec Expr module is sufficient to parse expression
+grammars where an expression form may begin or end with a recursive
+call to the expression parser.  Consider, however, OCaml's "match"
+expressions, which look like:
+
+  match <expr> with <matchings>
+
+In writing an OCaml parser, we might want to use the Expr module, but
+this form isn't Prefix, Postfix, or Infix, since the only recursive
+call to the expression parser happens between two other kinds of
+parsers.
+
+To handle this, pcl supports "Nonfix" expressions.  The Nonfix
+constructor accepts an arbitrary parser which has the same return
+type as the expression parser itself.  For example, if we were
+defining an expression parser for OCaml, we can parse the "match"
+expressions by defining the table in a scope which may make a recursive
+call to the expression parser itself and using Nonfix.  This might
+look something like:
+
+
+let rec ocaml_exp = 
+  let term = <...> in
+
+  let table = 
+    [ ...;
+      [Nonfix (    reserved "match"
+               >>  ocaml_exp
+               >>= fun e -> reserved "with"
+               >>  match_p
+               >>= fun m -> return (MatchExp (e,m)))];
+      ...
+    ]
+  in 
+    (buildExpressionParser table term) <?> "expression"
+
+
+But be warned:  If you use Nonfix with a parser that begins or ends
+with a recursive call to the outer expression parser, it will break
+the precedence rules.  Of course, these things may be parsed with
+one of the other 3 constructors.

@@ -1,0 +1,15 @@
+pcl - A parsec-style parser combinator library for ocaml
+
+This directory contains the basic pcl code.  See the Parsec
+documentation at (http://legacy.cs.uu.nl/daan/parsec.html).  See DOC
+in this directory for pcl specific information and differences from
+Parsec.  See INSTALL for directions on building, but currently the
+build system is not very complicated, so you can probably just
+type make and use the resulting pcl.cma file.
+
+
+Subdirectories:
+
+test - contains a test suite
+examples - contains several examples, including a few calculators,
+  an s-expression parser, and a (not yet totally complete) SML parser 

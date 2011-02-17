@@ -1,0 +1,11 @@
+This directory contains an SML parser.  It's basically complete, with
+only a few small issues remaining.  This code deals only with the
+parsing, and some of the syntactic restrictions mentioned outside of
+the grammar itself.  I may write those eventually for completeness,
+but the aren't here now.  The ast is a heavily modified version of the
+one that ships with smlnj.
+
+hw4_sol.sml is an sml file that I happened to have lying around (it's
+the solutions to an assignment I wrote).  It uses a lot of the
+grammar, and so it's an interesting test file for the parser if
+you're looking for something to play around with.
