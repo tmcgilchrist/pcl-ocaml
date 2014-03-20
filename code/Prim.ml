@@ -355,30 +355,30 @@ struct
     (manyAccum (fun _ _ -> []) p) >>= (fun _ -> return ())
 
   let manyArrOp p ~one =
-    let pos = ref 0 in
-    let index = ref 0 in
-    let index_arr = ref (Array.make 4 [||]) in
-    let len = ref 0 in
-    let total_len = ref 0 in
-    let insert t =
-      if !len = 0 then 
-        ((!index_arr).(0) <- Array.make 8 t; pos := 1; len := 8)
-      else if !pos = !len then
-        (let newlen = 2 * !len in
-         let ind_len = Array.length !index_arr in
-           total_len := !len + !total_len;
-           index := !index + 1;
-           if !index = ind_len then
-             (index_arr := Array.init (2*ind_len) 
-                 (fun n -> (!index_arr).(n mod ind_len)));
-           (!index_arr).(!index) <- Array.make newlen t;
-           pos := 1;
-           len := newlen)
-      else
-        ((!index_arr).(!index).(!pos) <- t;
-         pos := !pos + 1)
-    in
-      fun state ->
+    fun state ->
+      let pos = ref 0 in
+      let index = ref 0 in
+      let index_arr = ref (Array.make 4 [||]) in
+      let len = ref 0 in
+      let total_len = ref 0 in
+      let insert t =
+        if !len = 0 then 
+          ((!index_arr).(0) <- Array.make 8 t; pos := 1; len := 8)
+        else if !pos = !len then
+          (let newlen = 2 * !len in
+           let ind_len = Array.length !index_arr in
+             total_len := !len + !total_len;
+             index := !index + 1;
+             if !index = ind_len then
+               (index_arr := Array.init (2*ind_len) 
+                   (fun n -> (!index_arr).(n mod ind_len)));
+             (!index_arr).(!index) <- Array.make newlen t;
+             pos := 1;
+             len := newlen)
+        else
+          ((!index_arr).(!index).(!pos) <- t;
+           pos := !pos + 1)
+      in
         match p state with
             Empty result -> 
               (match result with
@@ -419,31 +419,31 @@ struct
 
 
   let manyColOp p ~one ~make ~set ~get ~length =
-    let pos = ref 0 in
-    let index = ref 0 in
-    let index_arr = ref (Array.make 4 (make 0)) in
-    let len = ref 16 in
-    let total_len = ref 0 in
-    !index_arr.(0) <- make 16;
-    let insert t =
-      if !pos = !len then
-        (let newlen = 2 * !len in
-         let ind_len = Array.length !index_arr in
-         let newcol = make newlen in
-           total_len := !len + !total_len;
-           index := !index + 1;
-           if !index = ind_len then
-             (index_arr := Array.init (2*ind_len) 
-                 (fun n -> (!index_arr).(n mod ind_len)));
-           set newcol 0 t;            
-           (!index_arr).(!index) <- newcol;
-           pos := 1;
-           len := newlen)
-      else
-        (set !index_arr.(!index) !pos t;
-         pos := !pos + 1)
-    in
-      fun state ->
+    fun state ->
+      let pos = ref 0 in
+      let index = ref 0 in
+      let index_arr = ref (Array.make 4 (make 0)) in
+      let len = ref 16 in
+      let total_len = ref 0 in
+      !index_arr.(0) <- make 16;
+      let insert t =
+        if !pos = !len then
+          (let newlen = 2 * !len in
+           let ind_len = Array.length !index_arr in
+           let newcol = make newlen in
+             total_len := !len + !total_len;
+             index := !index + 1;
+             if !index = ind_len then
+               (index_arr := Array.init (2*ind_len) 
+                   (fun n -> (!index_arr).(n mod ind_len)));
+             set newcol 0 t;            
+             (!index_arr).(!index) <- newcol;
+             pos := 1;
+             len := newlen)
+        else
+          (set !index_arr.(!index) !pos t;
+           pos := !pos + 1)
+      in
         match p state with
             Empty result -> 
               (match result with
