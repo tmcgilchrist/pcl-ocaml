@@ -97,13 +97,16 @@ struct
       let id x = x in
 
       let termP st =
-        (    (preOp <|> return id)
-         >>= fun pre -> (term <|> nonOp)
-         >>= fun x -> (postOp <|> return id)
-         >>= fun post -> return (post (pre x)))
-        st
+         (    (many preOp)
+          >>= fun pre -> (term <|> nonOp)
+          >>= fun x -> (many postOp)
+          >>= fun post -> 
+          return (
+            let x = List.fold_right (fun f x -> f x) pre x in
+            let x = List.fold_left (fun x f -> f x) x post in
+            x)
+         ) st
       in
-
 
       let rec rassocP x =
         (    (    raOp
