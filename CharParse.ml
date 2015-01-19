@@ -13,7 +13,7 @@ sig
   (* These two functions aren't really related to parsers, but are
    * often useful since the library deals with char lists, not strings
    * (at least for now *)
-  val explode : string -> char list 
+  val explode : string -> char list
   val implode : char list -> string
 
 
@@ -65,7 +65,7 @@ end
 
 
 
-module M : S = 
+module M : S =
 struct
 
 open CharPrim
@@ -73,16 +73,16 @@ open CharPrim
 (* useful *)
 let explode s =
   let rec exp n acc =
-    if n < 0 then acc 
+    if n < 0 then acc
     else exp (n-1) (s.[n]::acc)
   in
     exp ((String.length s)-1) []
 
 let implode cs =
-  let str = String.create (List.length cs) in
-  let rec imp n = function 
+  let str = Bytes.create (List.length cs) in
+  let rec imp n = function
       [] -> ()
-    | (c::cs) -> str.[n] <- c; imp (n+1) cs
+    | (c::cs) -> Bytes.set str n c; imp (n+1) cs
   in
     imp 0 cs; str
 
@@ -106,10 +106,10 @@ let noneOf cs = satisfy (fun c -> not (List.mem c cs))
 
 let char c = satisfy ((=) c) <?> ("\"" ^ Token.CharTok.toString c ^ "\"")
 
-let space st = 
+let space st =
   let isSpace c =
-    (c = ' ') || (c = '\t') || (c = '\n') || 
-    (c = '\011') || (c = '\012') || (c = '\r') 
+    (c = ' ') || (c = '\t') || (c = '\n') ||
+    (c = '\011') || (c = '\012') || (c = '\r')
   in
     (satisfy isSpace <?> "space") st
 
@@ -154,19 +154,15 @@ let octDigit st = (satisfy isOctDigit  <?> "octal digit") st
 let anyChar st  = (satisfy (fun _ -> true)) st
 
 
-let manyString p = manyColOp p ~one:false ~make:String.create ~set:String.set
+let manyString p = manyColOp p ~one:false ~make:Bytes.create ~set:Bytes.set
                              ~get:String.get ~length:String.length
 
 
 let parse_string s p =
-  match parse "test" (LazyList.M.ofString s) 
+  match parse "test" (LazyList.M.ofString s)
               (p >>= fun r -> CharComb.eof >> return r)
   with
     Success x -> Some x
   | Failure err -> print_string (Error.M.errorToString err); None
 
 end
-
-
-
-                           

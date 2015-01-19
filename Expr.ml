@@ -20,10 +20,10 @@ sig
    * expression parser, it will break the appropriate precedence
    * rules.  In those cases, Infix, Prefix, or Postfix should be
    * used.  This design suggested by Phil Wadler.
-   * 
-   * This useful if you had to parse, for example, the 
+   *
+   * This useful if you had to parse, for example, the
    *    "case <exp> of <match>" SML construction, which isn't
-   * obviously Prefix Postfix or Infix 
+   * obviously Prefix Postfix or Infix
    *
    * If Parsec's original expression parser is enough for you, you can
    * just ignore the NonFix constructor *)
@@ -31,7 +31,7 @@ sig
 
   type ('st,'a) operator_table  = ('st, 'a) operator list list
 
-  val buildExpressionParser : ('st,'a) operator_table 
+  val buildExpressionParser : ('st,'a) operator_table
                            -> ('st,'a) P.parser
                            -> ('st,'a) P.parser
 
@@ -39,10 +39,10 @@ end
 
 
 
-module M (P : Prim.S) : 
-  S with type 'a P.state = 'a P.state 
+module M (P : Prim.S) :
+  S with type 'a P.state = 'a P.state
     and type ('a,'b) P.rcon = ('a,'b) P.rcon
-    and type P.Tok.t = P.Tok.t = 
+    and type P.Tok.t = P.Tok.t =
 struct
 
   module P = P
@@ -84,23 +84,23 @@ struct
         (choice rassoc, choice lassoc, choice nassoc, choice prefix <?> "",
          choice postfix <?> "", choice nonfix <?> "")
       in
- 
-      let (ambigR,ambigL,ambigN) = 
-        let ambiguous assoc op = 
+
+      let (ambigR,ambigL,ambigN) =
+        let ambiguous assoc op =
           attempt (    op
-                    >>  fail ("ambiguous use of a " ^ assoc 
+                    >>  fail ("ambiguous use of a " ^ assoc
                                ^ "associative operator"))
         in
           (ambiguous "right" raOp, ambiguous "left" laOp, ambiguous "non" naOp)
       in
 
-      let id x = x in
+      (* let id x = x in *)
 
       let termP st =
          (    (many preOp)
           >>= fun pre -> (term <|> nonOp)
           >>= fun x -> (many postOp)
-          >>= fun post -> 
+          >>= fun post ->
           return (
             let x = List.fold_right (fun f x -> f x) pre x in
             let x = List.fold_left (fun x f -> f x) x post in
