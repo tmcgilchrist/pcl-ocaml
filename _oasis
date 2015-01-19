@@ -1,0 +1,14 @@
+OASISFormat: 0.4
+Name:        pcl
+Version:     0.0.1
+Synopsis:    A parsec-style parser combinator library for ocaml
+Authors:     Chris Casinghino
+License:     BSD-3-clause
+Plugins:     META (0.4), DevFiles (0.4), StdFiles (0.4)
+
+Library pcl
+  Path:            lib
+  BuildTools:      ocamlbuild
+  InternalModules: CharParse, Pos, Combinator, Prim, Error, LazyList, Token,
+    Expr
+  Modules: Pcl

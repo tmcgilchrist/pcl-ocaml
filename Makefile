@@ -1,22 +1,41 @@
+# OASIS_START
+# DO NOT EDIT (digest: a3c674b4239234cbbe53afe090018954)
 
-MODULES = LazyList Pos Token Error Prim Combinator Expr CharParse Language
+SETUP = ocaml setup.ml
 
-ML  = $(MODULES:=.ml)
+build: setup.data
+	$(SETUP) -build $(BUILDFLAGS)
+
+doc: setup.data build
+	$(SETUP) -doc $(DOCFLAGS)
+
+test: setup.data build
+	$(SETUP) -test $(TESTFLAGS)
 
 all:
-	ocamlc -a $(ML) -o pcl.cma
-opt:
-	ocamlopt -a $(ML) -o pcl.cmxa
-debug:
-	ocamlc -g -a $(ML) -o pcl.cma
-prof:
-	ocamlcp -a $(ML) -o pcl.cma
-fullprof:
-	ocamlcp -p a -a $(ML) -o pcl.cma
-gprof:
-	ocamlopt -p -a $(ML) -o pcl.cmxa
-check: all
-	cd test; make; ./check; cd ..
+	$(SETUP) -all $(ALLFLAGS)
+
+install: setup.data
+	$(SETUP) -install $(INSTALLFLAGS)
+
+uninstall: setup.data
+	$(SETUP) -uninstall $(UNINSTALLFLAGS)
+
+reinstall: setup.data
+	$(SETUP) -reinstall $(REINSTALLFLAGS)
 
 clean:
-	rm -f *.cmo *.cmx *.cmi *.cma *.cmxa *.a *.o
+	$(SETUP) -clean $(CLEANFLAGS)
+
+distclean:
+	$(SETUP) -distclean $(DISTCLEANFLAGS)
+
+setup.data:
+	$(SETUP) -configure $(CONFIGUREFLAGS)
+
+configure:
+	$(SETUP) -configure $(CONFIGUREFLAGS)
+
+.PHONY: build doc test all install uninstall reinstall clean distclean configure
+
+# OASIS_STOP
