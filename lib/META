@@ -1,0 +1,11 @@
+# OASIS_START
+# DO NOT EDIT (digest: 4cde00a28fe304b70945e63aee83992d)
+version = "0.1"
+description = "A parsec-style parser combinator library for ocaml"
+archive(byte) = "pcl.cma"
+archive(byte, plugin) = "pcl.cma"
+archive(native) = "pcl.cmxa"
+archive(native, plugin) = "pcl.cmxs"
+exists_if = "pcl.cma"
+# OASIS_STOP
+

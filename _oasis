@@ -1,14 +1,29 @@
 OASISFormat: 0.4
 Name:        pcl
-Version:     0.0.1
-Synopsis:    A parsec-style parser combinator library for ocaml
+Version:     0.1
+Synopsis:     A parsec-style parser combinator library for ocaml
 Authors:     Chris Casinghino
-License:     BSD-3-clause
-Plugins:     META (0.4), DevFiles (0.4), StdFiles (0.4)
+License:     BSD 2 Clause
+Plugins:     META (0.4), StdFiles (0.4), DevFiles (0.4)
+BuildTools:  ocamlbuild
 
 Library pcl
   Path:            lib
   BuildTools:      ocamlbuild
+  Modules:         Pcl
   InternalModules: CharParse, Pos, Combinator, Prim, Error, LazyList, Token,
     Expr
-  Modules: Pcl
+
+Executable test_parser
+  Path:               test
+  MainIs:             TestMain.ml
+  Build$:             flag(tests)
+  Custom:             true
+  CompiledObject:     best
+  Install:            false
+  BuildDepends:       pcl, oUnit (>= 1.0.2)
+
+Test test_parser
+  Run$:               flag(tests)
+  Command:            $test_parser
+  WorkingDirectory:   test
