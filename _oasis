@@ -3,7 +3,7 @@ Name:        pcl
 Version:     0.1
 Synopsis:     A parsec-style parser combinator library for ocaml
 Authors:     Chris Casinghino
-License:     BSD 2 Clause
+License:     BSD-2-clause
 Plugins:     META (0.4), StdFiles (0.4), DevFiles (0.4)
 BuildTools:  ocamlbuild
 
