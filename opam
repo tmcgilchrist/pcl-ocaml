@@ -1,0 +1,15 @@
+opam-version: "1.2"
+name: "pcl-ocaml"
+version: "0.1"
+maintainer: "Tim McGilchrist <timmcgil@gmail.com>"
+authors: "Chris Casinghino, Tim McGilchrist <timmcgil@gmail.com>"
+homepage: "https://github.com/tmcgilchrist/pcl-ocaml"
+dev-repo: "https://github.com/tmcgilchrist/pcl-ocaml.git"
+license: "BSD-2-clause"
+build: [
+  ["./configure" "--prefix=%{prefix}%"]
+  [make]
+]
+install: [make "install"]
+remove: ["ocamlfind" "remove" "pcl-ocaml"]
+depends: "ocamlfind" {build}
